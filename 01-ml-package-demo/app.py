@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from azure.ai.ml import MLClient
+from azure.ai.ml import MLClient, command
 from azure.identity import DefaultAzureCredential
 
 # Load environment variables from .env file
@@ -15,3 +15,20 @@ resource_group = os.getenv("RESOURCE_GROUP")
 ml_client = MLClient(
     DefaultAzureCredential(), subscription_id, resource_group, workspace_name
 )
+
+# configure job
+job = command(
+    code="./src",
+    command="python train.py",
+    environment="AzureML-sklearn-0.24-ubuntu18.04-py37-cpu@latest",
+    compute="aml-cluster",
+    experiment_name="train-model"
+)
+
+print("ML Job", job)
+
+# connect to workspace and submit job
+returned_job = ml_client.create_or_update(job)
+
+print("Returned Job", returned_job)
+
